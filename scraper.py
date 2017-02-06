@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from geopy.geocoders import GoogleV3
 import requests
 import re
 
@@ -31,7 +32,13 @@ def get_rightmove_houses(url):
 
     for link in soup.find_all("a", "propertyCard-link"):
 
-        link_list.append("http://www.rightmove.co.uk/" + link.get("href"))
+        if link.get("href") != "/property-for-sale/property-0.html":
+
+            link_list.append("http://www.rightmove.co.uk/" + link.get("href"))
+
+    link_list = set(link_list)
+
+
 
     soup_list = []
 
@@ -50,4 +57,29 @@ def get_rightmove_houses(url):
             price = price.group(1)
             print(price)
 
-construct_rightmove_url("5E219", "4", "500", True)
+        bedrooms = item.find(string=re.compile("bedroom"))
+        bedrooms = str(bedrooms.string)
+
+        bedrooms = bedrooms.rsplit("bedroom", 1)[0]
+        bedrooms = bedrooms.strip()
+        print(bedrooms)
+
+        address = item.find("address", class_="pad-0 fs-16 grid-25")
+        address_string = str(address.string)
+        geolocator = GoogleV3()
+
+        location = geolocator.geocode(address_string)
+        print(location.address)
+        print(location.latitude)
+        print(location.longitude)
+
+        furnished_type = item.find(id="furnishedType")
+
+        furnished_string = str(furnished_type.string)
+
+        is_furnished = False
+
+        if furnished_string == "Furnished":
+            is_furnished = True;
+
+construct_rightmove_url("5E219", "4", "400", True)
