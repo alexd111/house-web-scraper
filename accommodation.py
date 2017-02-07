@@ -1,6 +1,6 @@
 class Accommodation:
 
-    def __init__(self, ppm, bedrooms, bills_inc, lat, long, is_furnished, url):
+    def __init__(self, ppm, bedrooms, bills_inc, is_furnished, url):
         self.ppm = ppm
         self.bedrooms = bedrooms
         self.bills_inc = bills_inc
