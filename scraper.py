@@ -6,6 +6,15 @@ import accommodation
 import sqlite3
 
 
+def search(location, bedrooms, ppm, is_furnished):
+    houses_afs = construct_afs_url(location, bedrooms, ppm, is_furnished)
+    if location == "bristol":
+        rightmove_location = "5E219"
+    houses_rightmove = construct_rightmove_url(rightmove_location, bedrooms, ppm, is_furnished)
+
+    return houses_afs + houses_rightmove
+
+
 def construct_rightmove_url(location, bedrooms, price, is_furnished):
     url = "http://www.rightmove.co.uk/property-to-rent/find.html?locationIdentifier=REGION%{LOCATION}&maxBedrooms="\
             "{MAX_BEDROOMS}&minBedrooms={MAX_BEDROOMS}&maxPrice={MAX_PRICE}&includeLetAgreed=false&furnishTypes="\
@@ -13,7 +22,11 @@ def construct_rightmove_url(location, bedrooms, price, is_furnished):
 
     query_url = url.replace("{LOCATION}", location)  # THIS WILL NEED A HELPER METHOD
 
+    bedrooms = str(bedrooms)
+
     query_url = query_url.replace("{MAX_BEDROOMS}", bedrooms)
+
+    price = str(price)
 
     query_url = query_url.replace("{MAX_PRICE}", price)
 
@@ -24,7 +37,7 @@ def construct_rightmove_url(location, bedrooms, price, is_furnished):
 
     print(query_url)
 
-    get_rightmove_houses(query_url)
+    return get_rightmove_houses(query_url)
 
 
 def construct_afs_url(location, bedrooms, price, is_furnished):
@@ -33,6 +46,8 @@ def construct_afs_url(location, bedrooms, price, is_furnished):
             "{IS_FURNISHED}&x=29&y=24&perpage=200"
 
     query_url = url.replace("{LOCATION}", location)
+
+    bedrooms = str(bedrooms)
 
     query_url = query_url.replace("{MAX_BEDROOMS}", bedrooms)
 
@@ -51,7 +66,7 @@ def construct_afs_url(location, bedrooms, price, is_furnished):
 
     print(query_url)
 
-    get_afs_houses(query_url, bedrooms)
+    return get_afs_houses(query_url, bedrooms)
 
 
 def get_afs_houses(url, bedrooms):
@@ -60,6 +75,8 @@ def get_afs_houses(url, bedrooms):
     soup = BeautifulSoup(page, "html.parser")
 
     link_list = create_afs_links(soup, bedrooms)
+
+    house_list = []
 
     for link in link_list:
         conn = sqlite3.connect("houses.db")
@@ -77,6 +94,19 @@ def get_afs_houses(url, bedrooms):
                 house = create_afs_house(data_list[i], link_list[i], bedrooms)
 
                 add_house_to_db(house)
+
+                house_list.append(house)
+
+        else:
+
+            house = accommodation.Accommodation(result[1], result[2], result[3], result[6], result[0])
+            house.lat = result[4]
+            house.long = result[4]
+            house_list.append(house)
+
+    return house_list
+
+# def get_house_from_db(url):
 
 
 def create_afs_house(soup, url, bedrooms):
@@ -120,11 +150,13 @@ def create_afs_links(soup, bedrooms):
 
 
 def get_rightmove_houses(url):
+
     result = requests.get(url)
     page = result.content
     soup = BeautifulSoup(page, "html.parser")
 
     link_list = create_rightmove_links(soup)
+    house_list = []
 
     for link in link_list:
         conn = sqlite3.connect("houses.db")
@@ -144,6 +176,14 @@ def get_rightmove_houses(url):
 
                 add_house_to_db(house)
 
+                house_list.append(house)
+        else:
+
+            house = accommodation.Accommodation(result[1], result[2], result[3], result[6], result[0])
+            house.lat = result[4]
+            house.long = result[4]
+            house_list.append(house)
+    return house_list
 
 def create_rightmove_house(item):
     page_url = item.find("meta", property="og:url")
@@ -219,9 +259,9 @@ def add_house_to_db(house):
     conn.commit()
 
 
-init_db()
-
-construct_afs_url("bristol", "4", "500", False)
-
-construct_rightmove_url("5E219", "4", "500", False)
+# init_db()
+#
+# construct_afs_url("bristol", "4", "500", False)
+#
+# construct_rightmove_url("5E219", "4", "500", False)
 
