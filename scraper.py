@@ -1,3 +1,4 @@
+# coding=utf-8
 from bs4 import BeautifulSoup
 from geopy.geocoders import GoogleV3
 import requests
@@ -12,6 +13,7 @@ def search(location, bedrooms, ppm, is_furnished):
         rightmove_location = "5E219"
     houses_rightmove = construct_rightmove_url(rightmove_location, bedrooms, ppm, is_furnished)
 
+    print(houses_rightmove)
     return houses_afs + houses_rightmove
 
 
@@ -30,7 +32,7 @@ def construct_rightmove_url(location, bedrooms, price, is_furnished):
 
     query_url = query_url.replace("{MAX_PRICE}", price)
 
-    if is_furnished is True:
+    if is_furnished == 1:
         query_url = query_url.replace("{IS_FURNISHED}", "furnished")
     else:
         query_url = query_url.replace("{IS_FURNISHED}", "unfurnished")
@@ -59,7 +61,7 @@ def construct_afs_url(location, bedrooms, price, is_furnished):
 
     query_url = query_url.replace("{MAX_PRICE}", weekly_price)
 
-    if is_furnished is True:
+    if is_furnished == 1:
         query_url = query_url.replace("{IS_FURNISHED}", "1")
     else:
         query_url = query_url.replace("{IS_FURNISHED}", "0")
@@ -183,7 +185,9 @@ def get_rightmove_houses(url):
             house.lat = result[4]
             house.long = result[4]
             house_list.append(house)
+
     return house_list
+
 
 def create_rightmove_house(item):
     page_url = item.find("meta", property="og:url")
@@ -252,7 +256,7 @@ def add_house_to_db(house):
     c = conn.cursor()
 
     # row = [(house.url, house.ppm, house.bedrooms, house.bills_inc, house.lat, house.long, house.is_furnished)]
-
+    print(house.url)
     c.execute('INSERT INTO accommodations VALUES (?,?,?,?,?,?,?)',
               (house.url, house.ppm, house.bedrooms, house.bills_inc, house.lat, house.long, house.is_furnished))
 
