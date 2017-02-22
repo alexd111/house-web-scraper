@@ -5,17 +5,79 @@ import requests
 import re
 import accommodation
 import sqlite3
+import rightmove_outcodes
 
 
-def search(location, bedrooms, ppm, is_furnished):
-    houses_afs = construct_afs_url(location, bedrooms, ppm, is_furnished)
-    if location == "bristol":
-        rightmove_location = "5E219"
-    houses_rightmove = construct_rightmove_url(rightmove_location, bedrooms, ppm, is_furnished)
+def search(location, bedrooms, ppm, is_furnished, bills_inc):
+    houses_zoopla = get_zoopla_houses(location, bedrooms, ppm, bills_inc)
+    houses_afs = construct_afs_url(location, bedrooms, ppm, is_furnished, bills_inc)
+    rightmove_locations = rightmove_outcodes.create_dictionary()
 
-    print(houses_rightmove)
-    return houses_afs + houses_rightmove
+    rightmove_code = rightmove_locations[location.casefold()]
+    # if location.casefold() == "bristol":
+    #     rightmove_location = "5E219"
+    houses_rightmove = construct_rightmove_url(rightmove_code, bedrooms, ppm, is_furnished)
 
+    return houses_afs + houses_rightmove + houses_zoopla
+
+
+def get_zoopla_houses(location, bedrooms, price, bills_inc):
+    house_list = []
+    monthly_price = int(price)
+
+    weekly_price = int((monthly_price * 12) / 52)
+
+    parameters = {
+        'area': location,
+        'radius': 5,
+        'listing_status': 'rent',
+        'maximum_price': weekly_price,
+        'minimum_beds': bedrooms,
+        'maximum_beds': bedrooms,
+        'api_key': 'zwqrekb5d6zawqmxud9bnpte'
+    }
+
+    r = requests.get('http://api.zoopla.co.uk/api/v1/property_listings.js', params=parameters)
+
+    result = r.json()
+
+    for item in result['listing']:
+        print(item['details_url'])
+
+        conn = sqlite3.connect("houses.db")
+        c = conn.cursor()
+
+        house_url = item['details_url']
+        house_bedrooms = int(item['num_bedrooms'])
+        house_price = item['rental_prices']['per_month']
+        house_bills = bills_inc
+        house_lat = item['latitude']
+        house_long = item['longitude']
+
+        geolocator = GoogleV3()
+        house_location = geolocator.geocode(item['displayable_address'])
+        if house_location is None:
+            house = accommodation.Accommodation(house_price, house_bedrooms, house_bills, item['displayable_address'],
+                                                "UNSURE", house_url)
+        else:
+            house = accommodation.Accommodation(house_price, house_bedrooms, house_bills, house_location.address, "UNSURE", house_url)
+        house.lat = house_lat
+        house.long = house_long
+
+        c.execute('''SELECT * FROM accommodations WHERE url=?''', (house_url,))
+
+        result = c.fetchone()
+
+        if result is None:
+            add_house_to_db(house)
+            house_list.append(house)
+        else:
+            house = accommodation.Accommodation(result[1], result[2], result[3], result[6], result[7], result[0])
+            house.lat = result[4]
+            house.long = result[4]
+            house_list.append(house)
+
+        return house_list
 
 def construct_rightmove_url(location, bedrooms, price, is_furnished):
     url = "http://www.rightmove.co.uk/property-to-rent/find.html?locationIdentifier=REGION%{LOCATION}&maxBedrooms="\
@@ -42,10 +104,10 @@ def construct_rightmove_url(location, bedrooms, price, is_furnished):
     return get_rightmove_houses(query_url)
 
 
-def construct_afs_url(location, bedrooms, price, is_furnished):
+def construct_afs_url(location, bedrooms, price, is_furnished, bills_inc):
     url = "http://www.accommodationforstudents.com/searchresults.asp?lookingfor=any&city={LOCATION}&numberofbedrooms="\
             "{MAX_BEDROOMS}&cost={MAX_PRICE}&searchtype=city&street=&postcode=&area=&orderby=latest&bills_included="\
-            "{IS_FURNISHED}&x=29&y=24&perpage=200"
+            "{BILLS_INC}&x=29&y=24&perpage=200"
 
     query_url = url.replace("{LOCATION}", location)
 
@@ -61,10 +123,10 @@ def construct_afs_url(location, bedrooms, price, is_furnished):
 
     query_url = query_url.replace("{MAX_PRICE}", weekly_price)
 
-    if is_furnished == 1:
-        query_url = query_url.replace("{IS_FURNISHED}", "1")
+    if bills_inc == 1:
+        query_url = query_url.replace("{BILLS_INC}", "1")
     else:
-        query_url = query_url.replace("{IS_FURNISHED}", "0")
+        query_url = query_url.replace("{BILLS_INC}", "0")
 
     print(query_url)
 
@@ -101,7 +163,7 @@ def get_afs_houses(url, bedrooms):
 
         else:
 
-            house = accommodation.Accommodation(result[1], result[2], result[3], result[6], result[0])
+            house = accommodation.Accommodation(result[1], result[2], result[3], result[6], result[7], result[0])
             house.lat = result[4]
             house.long = result[4]
             house_list.append(house)
@@ -133,7 +195,7 @@ def create_afs_house(soup, url, bedrooms):
 
     furnished = soup.find(text=re.compile("Furnished"))
 
-    house = accommodation.Accommodation(price, bedrooms, "UNSURE", 1, url)
+    house = accommodation.Accommodation(price, bedrooms, "UNSURE", location.address, 1, url)
     house.lat = location.latitude
     house.long = location.longitude
 
@@ -181,7 +243,7 @@ def get_rightmove_houses(url):
                 house_list.append(house)
         else:
 
-            house = accommodation.Accommodation(result[1], result[2], result[3], result[6], result[0])
+            house = accommodation.Accommodation(result[1], result[2], result[3], result[6], result[7], result[0])
             house.lat = result[4]
             house.long = result[4]
             house_list.append(house)
@@ -217,7 +279,7 @@ def create_rightmove_house(item):
     if furnished_string == "Furnished":
         is_furnished = 1
 
-    house = accommodation.Accommodation(price, bedrooms, "UNSURE", is_furnished, page_url)
+    house = accommodation.Accommodation(price, bedrooms, "UNSURE", location.address, is_furnished, page_url)
     house.lat = location.latitude
     house.long = location.longitude
     return house
@@ -248,7 +310,7 @@ def init_db():
     c = conn.cursor()
 
     c.execute('''CREATE TABLE IF NOT EXISTS accommodations
-                (url text PRIMARY KEY, ppm int, bedrooms int, bills_inc text, lat real, long real, is_furnished int)''')
+                (url text PRIMARY KEY, ppm int, bedrooms int, bills_inc text, lat real, long real, address text, is_furnished int)''')
 
 
 def add_house_to_db(house):
@@ -257,8 +319,8 @@ def add_house_to_db(house):
 
     # row = [(house.url, house.ppm, house.bedrooms, house.bills_inc, house.lat, house.long, house.is_furnished)]
     print(house.url)
-    c.execute('INSERT INTO accommodations VALUES (?,?,?,?,?,?,?)',
-              (house.url, house.ppm, house.bedrooms, house.bills_inc, house.lat, house.long, house.is_furnished))
+    c.execute('INSERT INTO accommodations VALUES (?,?,?,?,?,?,?,?)',
+              (house.url, house.ppm, house.bedrooms, house.bills_inc, house.lat, house.long, house.address, house.is_furnished))
 
     conn.commit()
 

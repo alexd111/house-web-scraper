@@ -12,27 +12,30 @@ class HelloWorld(Resource):
 
 
 class AccommodationRequest(Resource):
-    def get(self, location, bedrooms, price, is_furnished):
+    def get(self, location, bedrooms, price, is_furnished, bills_inc):
         bedrooms = int(bedrooms)
         price = int(price)
         is_furnished = int(is_furnished)
+        bills_inc = int(bills_inc)
 
-        houses = scraper.search(location, bedrooms, price, is_furnished)
+        houses = scraper.search(location, bedrooms, price, is_furnished, bills_inc)
         house_list = []
         for item in houses:
             house_list.append({
-                'no_of_bedrooms': item.bedrooms,
+                'bedrooms': item.bedrooms,
                 'ppm': item.ppm,
                 'bills_inc': item.bills_inc,
                 'latitude': item.lat,
                 'longitude': item.long,
+                'address': item.address,
                 'is_furnished': item.is_furnished,
                 'url': item.url
                 })
         return house_list
 
 api.add_resource(HelloWorld, '/')
-api.add_resource(AccommodationRequest, '/accommodation/<location>/<bedrooms>/<price>/<is_furnished>')
+api.add_resource(AccommodationRequest, '/accommodation/<location>/<bedrooms>/<price>/<is_furnished>/<bills_inc>')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    scraper.init_db()
+    app.run(debug=True, host='0.0.0.0')
