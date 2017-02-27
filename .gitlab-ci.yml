@@ -1,0 +1,7 @@
+run:
+    - source py3env/bin/activate
+    - pip install flask
+    - pip install flask_restful
+    - pip install beautifulsoup4
+    - pip install geopy
+    - pip install requests
