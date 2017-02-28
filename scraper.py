@@ -79,6 +79,7 @@ def get_zoopla_houses(location, bedrooms, price, bills_inc):
 
         return house_list
 
+
 def construct_rightmove_url(location, bedrooms, price, is_furnished):
     url = "http://www.rightmove.co.uk/property-to-rent/find.html?locationIdentifier=REGION%{LOCATION}&maxBedrooms="\
             "{MAX_BEDROOMS}&minBedrooms={MAX_BEDROOMS}&maxPrice={MAX_PRICE}&includeLetAgreed=false&furnishTypes="\

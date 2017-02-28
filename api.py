@@ -24,11 +24,11 @@ class AccommodationRequest(Resource):
             house_list.append({
                 'bedrooms': item.bedrooms,
                 'ppm': item.ppm,
-                'bills_inc': item.bills_inc,
+                'billsInc': item.bills_inc,
                 'latitude': item.lat,
                 'longitude': item.long,
                 'address': item.address,
-                'is_furnished': item.is_furnished,
+                'isFurnished': item.is_furnished,
                 'url': item.url
                 })
         return house_list
