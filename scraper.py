@@ -265,8 +265,11 @@ def create_rightmove_house(item):
 
     bedrooms = item.find(string=re.compile("bedroom"))
     bedrooms = str(bedrooms.string)
+    print(page_url)
+    print(bedrooms)
     bedrooms = bedrooms.rsplit("bedroom", 1)[0]
     bedrooms = bedrooms.strip()
+    # bedrooms = bedrooms.replace("Student Accommodation - ", "")
     bedrooms = int(bedrooms)
 
     address = item.find("address", class_="pad-0 fs-16 grid-25")
@@ -301,7 +304,9 @@ def create_rightmove_links(soup):
     for link in soup.find_all("a", "propertyCard-link"):
 
         if link.get("href") != "/property-for-sale/property-0.html":
-            link_list.append("http://www.rightmove.co.uk" + link.get("href"))
+            url = link.get("href")
+            url_number = re.findall(r'\d+', url)
+            link_list.append("http://www.rightmove.co.uk/property-to-rent/property-" + url_number[0] + ".html")
     link_list = set(link_list)
     return link_list
 
