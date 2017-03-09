@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_restful import Resource, Api
-import scraper
+import web_scraper
 
 app = Flask(__name__)
 api = Api(app)
@@ -18,7 +18,7 @@ class AccommodationRequest(Resource):
         is_furnished = int(is_furnished)
         bills_inc = int(bills_inc)
 
-        houses = scraper.search(location, bedrooms, price, is_furnished, bills_inc)
+        houses = web_scraper.search(location, bedrooms, price, is_furnished, bills_inc)
         house_list = []
         for item in houses:
             house_list.append({
@@ -37,5 +37,5 @@ api.add_resource(HelloWorld, '/')
 api.add_resource(AccommodationRequest, '/accommodation/<location>/<bedrooms>/<price>/<is_furnished>/<bills_inc>')
 
 if __name__ == '__main__':
-    scraper.init_db()
+    web_scraper.init_db()
     app.run(debug=True, host='0.0.0.0')
