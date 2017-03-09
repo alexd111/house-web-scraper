@@ -1,5 +1,7 @@
 from get_houses import get_rightmove_houses, get_afs_houses
 
+#  Both methods construct a search url based on the input parameters
+
 
 def construct_rightmove_url(location, bedrooms, price, is_furnished):
     url = "http://www.rightmove.co.uk/property-to-rent/find.html?locationIdentifier=REGION%{LOCATION}&maxBedrooms="\

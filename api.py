@@ -33,7 +33,6 @@ class AccommodationRequest(Resource):
                 })
         return house_list
 
-api.add_resource(HelloWorld, '/')
 api.add_resource(AccommodationRequest, '/accommodation/<location>/<bedrooms>/<price>/<is_furnished>/<bills_inc>')
 
 if __name__ == '__main__':

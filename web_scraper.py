@@ -8,18 +8,19 @@ from construct_url import construct_rightmove_url, construct_afs_url
 from get_houses import get_zoopla_houses
 
 
+# Searches all APIs/websites based on input criteria
 def search(location, bedrooms, ppm, is_furnished, bills_inc):
     houses_zoopla = get_zoopla_houses(location, bedrooms, ppm, bills_inc)
     houses_afs = construct_afs_url(location, bedrooms, ppm, is_furnished, bills_inc)
     rightmove_locations = rightmove_outcodes.create_dictionary()
 
-    rightmove_code = rightmove_locations[location.casefold()]
+    rightmove_code = rightmove_locations[location.casefold()]  # Rightmove uses outcodes for location
 
     houses_rightmove = construct_rightmove_url(rightmove_code, bedrooms, ppm, is_furnished)
 
     return houses_afs + houses_rightmove + houses_zoopla
 
-
+# Returns parsable objects of webpages
 def get_soups(link_list):
     soup_list = []
     for link in link_list:
@@ -30,6 +31,7 @@ def get_soups(link_list):
     return soup_list
 
 
+# Initiate database if needed
 def init_db():
     conn = sqlite3.connect("houses.db")
     c = conn.cursor()
@@ -42,7 +44,6 @@ def add_house_to_db(house):
     conn = sqlite3.connect("houses.db")
     c = conn.cursor()
 
-    # row = [(house.url, house.ppm, house.bedrooms, house.bills_inc, house.lat, house.long, house.is_furnished)]
     print(house.url)
     c.execute('INSERT INTO accommodations VALUES (?,?,?,?,?,?,?,?)',
               (house.url, house.ppm, house.bedrooms, house.bills_inc, house.lat, house.long, house.address, house.is_furnished))

@@ -56,7 +56,7 @@ def get_zoopla_houses(location, bedrooms, price, bills_inc):
 
         result = c.fetchone()
 
-        if result is None:
+        if result is None:  # Check if house is not already in database
             web_scraper.add_house_to_db(house)
             house_list.append(house)
         else:
@@ -85,7 +85,7 @@ def get_afs_houses(url, bedrooms):
 
         result = c.fetchone()
 
-        if result is None:
+        if result is None: # Check if house is not already in database
 
             data_list = web_scraper.get_soups(link_list)
 
@@ -123,7 +123,7 @@ def get_rightmove_houses(url):
 
         result = c.fetchone()
 
-        if result is None:
+        if result is None: # Check if house is not already in database
 
             soup_list = web_scraper.get_soups(link_list)
 

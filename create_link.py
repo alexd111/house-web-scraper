@@ -1,5 +1,6 @@
 import re
 
+# Both methods parse the websites' search results page and return a list of links to propery listings
 
 def create_afs_links(soup, bedrooms):
     link_list = []

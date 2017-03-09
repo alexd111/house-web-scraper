@@ -3,21 +3,22 @@ from geopy import GoogleV3
 
 import accommodation
 
+# All methods scan webpage objects for data needed for creating Accommodation objects
 
 def create_afs_house(soup, url, bedrooms):
     price = soup.find("div", class_="style12x")
     price = price.text
-    price = re.search('£(.*)pw', price)
+    price = re.search('£(.*)pw', price)  # Find price per week
     price = price.group(1)
     price = int(price)
     price = int((price * 52) / 12)
     print(price)
 
-    pattern = re.compile('[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}')
+    pattern = re.compile('[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}')  # Find postcode
 
     location_string = soup.find(text=pattern)
     location_string = str(location_string.string)
-    location_string = re.sub(r'\([^)]*\)', '', location_string)
+    location_string = re.sub(r'\([^)]*\)', '', location_string)  # Remove whitespace
 
     geolocator = GoogleV3()
     location = geolocator.geocode(location_string)
@@ -40,7 +41,7 @@ def create_rightmove_house(item):
 
     if price is not None:
         price = price.text
-        price = re.search('£(.*) pcm', price)
+        price = re.search('£(.*) pcm', price)  # Get price per month
         price = price.group(1)
         price = int(price)
 
@@ -50,7 +51,6 @@ def create_rightmove_house(item):
     print(bedrooms)
     bedrooms = bedrooms.rsplit("bedroom", 1)[0]
     bedrooms = bedrooms.strip()
-    # bedrooms = bedrooms.replace("Student Accommodation - ", "")
     bedrooms = int(bedrooms)
 
     address = item.find("address", class_="pad-0 fs-16 grid-25")
