@@ -6,6 +6,7 @@ from geopy import GoogleV3
 import accommodation
 import create_house
 import create_link
+import database
 import web_scraper
 
 
@@ -57,7 +58,7 @@ def get_zoopla_houses(location, bedrooms, price, bills_inc):
         result = c.fetchone()
 
         if result is None:  # Check if house is not already in database
-            web_scraper.add_house_to_db(house)
+            database.add_house_to_db(house)
             house_list.append(house)
         else:
             house = accommodation.Accommodation(result[1], result[2], result[3], result[6], result[7], result[0])
@@ -87,12 +88,12 @@ def get_afs_houses(url, bedrooms):
 
         if result is None: # Check if house is not already in database
 
-            data_list = web_scraper.get_soups(link_list)
+            data_list = get_soups(link_list)
 
             for i in range(len(data_list)):
                 house = create_house.create_afs_house(data_list[i], link_list[i], bedrooms)
 
-                web_scraper.add_house_to_db(house)
+                database.add_house_to_db(house)
 
                 house_list.append(house)
 
@@ -125,13 +126,13 @@ def get_rightmove_houses(url):
 
         if result is None: # Check if house is not already in database
 
-            soup_list = web_scraper.get_soups(link_list)
+            soup_list = get_soups(link_list)
 
             for item in soup_list:
 
                 house = create_house.create_rightmove_house(item)
 
-                web_scraper.add_house_to_db(house)
+                database.add_house_to_db(house)
 
                 house_list.append(house)
         else:
@@ -142,3 +143,13 @@ def get_rightmove_houses(url):
             house_list.append(house)
 
     return house_list
+
+
+def get_soups(link_list):
+    soup_list = []
+    for link in link_list:
+        result = requests.get(link)
+        page = result.content
+        soup_list.append(BeautifulSoup(page, "html.parser"))
+        print("request")
+    return soup_list

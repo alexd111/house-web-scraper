@@ -1,4 +1,4 @@
-from get_houses import get_rightmove_houses, get_afs_houses
+import get_houses
 
 #  Both methods construct a search url based on the input parameters
 
@@ -25,7 +25,7 @@ def construct_rightmove_url(location, bedrooms, price, is_furnished):
 
     print(query_url)
 
-    return get_rightmove_houses(query_url)
+    return get_houses.get_rightmove_houses(query_url)
 
 
 def construct_afs_url(location, bedrooms, price, is_furnished, bills_inc):
@@ -54,4 +54,4 @@ def construct_afs_url(location, bedrooms, price, is_furnished, bills_inc):
 
     print(query_url)
 
-    return get_afs_houses(query_url, bedrooms)
+    return get_houses.get_afs_houses(query_url, bedrooms)
