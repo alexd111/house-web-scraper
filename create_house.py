@@ -58,6 +58,9 @@ def create_rightmove_house(item):
     geolocator = GoogleV3()
     location = geolocator.geocode(address_string)
 
+    if location is None:
+        location = ""
+
     furnished_type = item.find(id="furnishedType")
     furnished_string = str(furnished_type.string)
     is_furnished = 0
