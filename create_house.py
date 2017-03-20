@@ -56,10 +56,16 @@ def create_rightmove_house(item):
     address = item.find("address", class_="pad-0 fs-16 grid-25")
     address_string = str(address.string)
     geolocator = GoogleV3()
-    location = geolocator.geocode(address_string)
+    address_string = geolocator.geocode(address_string)
 
-    if location is None:
-        location = ""
+    if address_string is None:
+        address = ""
+        latitude = ""
+        longitude = ""
+    else:
+        address = address_string.address
+        latitude = address_string.latitude
+        longitude = address_string.latitude
 
     furnished_type = item.find(id="furnishedType")
     furnished_string = str(furnished_type.string)
@@ -67,7 +73,7 @@ def create_rightmove_house(item):
     if furnished_string == "Furnished":
         is_furnished = 1
 
-    house = accommodation.Accommodation(price, bedrooms, "UNSURE", location.address, is_furnished, page_url)
-    house.lat = location.latitude
-    house.long = location.longitude
+    house = accommodation.Accommodation(price, bedrooms, "UNSURE", address, is_furnished, page_url)
+    house.lat = latitude
+    house.long = longitude
     return house
