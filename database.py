@@ -17,3 +17,14 @@ def add_house_to_db(house):
               (house.url, house.ppm, house.bedrooms, house.bills_inc, house.lat, house.long, house.address, house.is_furnished))
 
     conn.commit()
+
+
+def get_rightmove_outcode(city):
+    conn = sqlite3.connect("houses.db")
+    c = conn.cursor()
+
+    c.execute('''SELECT * FROM outcodes WHERE city=? COLLATE NOCASE''', (city,))
+
+    result = c.fetchone()
+
+    return result[1]
